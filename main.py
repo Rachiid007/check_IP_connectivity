@@ -1,38 +1,9 @@
 #! python3
-# coding: utf-8
 
-from argparse import ArgumentParser
-from module.pinger import Pinger
-from re import match
 import subprocess
-import sys
+from argparse import ArgumentParser
 
-
-class NomFichierNonValide(Exception):
-    pass
-
-
-def check_filename(filename: str) -> bool:
-    """Verifier si le nom du fichier est correct.
-
-    Verifier si le nom du fichier est correct (retourne True ou sinon False).
-
-    PRE : filename est un nom de fichier valide
-    POST : Retourne True si le nom du fichier est valide, sinon False
-    RAISES : NomFichierNonValide si filename != regex
-
-    Parameters:
-            filename (str): un nom de fichier
-
-    Returns:
-            boolean (bool): Booléen si le nom du fichier est valide ou non
-    """
-    regex = r'\b[A-Za-z0-9._+-]+\.[A-Z|a-z]{2,6}\b'
-
-    if not match(regex, filename):
-        raise NomFichierNonValide("Le paramètre dois être un nom de fichier !")
-    else:
-        return True
+from module import checker, pinger
 
 
 def check_args() -> str:
@@ -45,14 +16,16 @@ def check_args() -> str:
     Returns:
             Nom du fichier (str): Si nom de fichier, retourne le nom du fichier ou erreur dans le cas échéant
     """
-    parser = ArgumentParser(prog="Ping hostname", description="Tester la joignabilité d'un site.")
-    parser.add_argument('filename', type=str, help='Le nom du fichier contenant la liste des noms des sites.')
+    parser = ArgumentParser(description='Test IP reachability from domain name or IP address',
+                            epilog='Example: python3 /path/to/servers.txt --nbr_of_ping=4')
+    parser.add_argument('pathname', type=checker.is_exist_pathname, help='Pathname with domain names / IP to ping')
+    parser.add_argument('-c', '--number_of_ping', type=int, default=4, help='Number of ping to perform')
     args = parser.parse_args()
 
-    if check_filename(args.filename):
-        return args.filename
-    else:
-        sys.exit("Le paramètre dois être un nom de fichier !")
+    print(args)
+
+    return args.pathname
+
 
 def ping(hostname: str) -> bool:
     """Effectuer la commande ping sur les sites.
@@ -68,7 +41,7 @@ def ping(hostname: str) -> bool:
     Returns:
             boolean (bool): Booléen si la commande ping() n'a subi aucune pertes.
     """
-    test1 = Pinger()
+    test1 = pinger.Pinger()
     commande = f"{test1} {hostname}"
     try:
         output = subprocess.check_output(commande, shell=True, universal_newlines=True)
@@ -79,30 +52,24 @@ def ping(hostname: str) -> bool:
         return False
 
 
-def exec_script(filename: str):
+def exec_script(list_servers: str):
     """Exécuter le script.
 
     Ouvrir le fichier, boucler tant qu'il y a des lignes, faire un ping() de chaque ligne grâce à la fonction ping() et
     afficher le résultat. Si ok -> UP, sinon DOWN.
 
     Parameters:
-            filename (str): un nom de fichier
+            list_servers (str): un nom de fichier
 
     Returns:
         none: Affiche le résultat du ping.
     """
-    try:
-        with open(filename, mode='r', encoding='utf-8') as file:
-            for line in file:
-                if ping(line.rstrip()):  # Linux problème ici! -> function ping() -> dis que file introuvable
-                    print(f"{line.rstrip()} UP")
-                else:
-                    print(f"{line.rstrip()} DOWN")
 
-    except FileNotFoundError:
-        sys.exit("Fichier introuvable !")
-    except IOError:
-        sys.exit("Erreur IO !")
+    for i in list_servers:
+        if ping(i):  # Linux problème ici! -> function ping() -> dis que file introuvable
+            print(f"{i} UP")
+        else:
+            print(f"{i} DOWN")
 
 
 if __name__ == '__main__':

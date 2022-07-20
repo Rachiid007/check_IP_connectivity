@@ -1,5 +1,3 @@
-#! python3
-# coding: utf-8
 from platform import system
 import sys
 
@@ -9,27 +7,27 @@ class Pinger:
 
     Args:
        system_now (str): système d'exploitation actuel.
-        count (int): nombre de ping (par défaut 4).
+        nbr_of_ping (int): nombre de ping (par défaut 4).
         nbr_second (int): nombre de seconde pour chaque ping (par défaut 4).
 
     Attributes:
         __system_now (str): système d'exploitation actuel.
-        __count (int): nombre de ping (par défaut 4).
+        __nbr_of_ping (int): nombre de ping (par défaut 4).
         __nbr_second (int): nombre de seconde pour chaque ping (par défaut 4).
 
     Returns:
         str: La commande ping avec la version du système d'exploitation actuel.
     """
 
-    def __init__(self, system_now=system().lower(), count=4, nbr_second=4):
+    def __init__(self, system_now=system().lower(), nbr_of_ping=4, nbr_second=4):
         self.__system_now = system_now
 
-        if isinstance(count, int):
-            self.__count = count
+        if isinstance(nbr_of_ping, int):
+            self.__nbr_of_ping = nbr_of_ping
         else:
             sys.exit("Pas un entier !")
 
-        if isinstance(count, int):
+        if isinstance(nbr_of_ping, int):
             self.__nbr_second = nbr_second
         else:
             sys.exit("Pas un entier !")
@@ -40,9 +38,9 @@ class Pinger:
                 str: Le nombre de ping demandé pour la version du système d'exploitation actuel.
         """
         if self.__system_now == "windows":
-            return f"-n {self.__count}"
+            return f"-n {self.__nbr_of_ping}"
         else:
-            return f"-c {self.__count}"
+            return f"-c {self.__nbr_of_ping}"
 
     def timeout(self) -> str:
         """timeout pour chaque ping.
